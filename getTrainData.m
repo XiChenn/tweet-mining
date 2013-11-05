@@ -4,6 +4,8 @@ fid  = fopen('train_processed.txt');
 text = fgetl(fid);
 X = [];
 y = [];
+tempX2 = [];
+tempY2 = [];
 %save('trainData1.mat', 'X', 'y', '-v7.3');
 
 fprintf('Started...............\n')
@@ -19,25 +21,29 @@ while(text ~= -1)
     
     word_indices = processTweet(text, dictionary);
     tempX        = tweetFeatures(word_indices, n); % Return 1 x n matrix
-	tempY        = fgetl(fid);    
-	y = [y; tempY];
-	X = [X; tempX];	% tempX no longer need transpose
+	tempY        = fgetl(fid);    	
+	tempX2 = [tempX2; tempX];	% tempX no longer need transpose
+    tempY2 = [tempY2; tempY];
     
 	text = fgetl(fid);
 	count = count + 1; % - for debug only
     
 	if count == 1000 % - for debug only
+        X = [X; tempX2]; % each 1000 rows, merge it X
+        y = [y; tempY2];
+        clear tempX2;
+        clear tempY2;
+        tempX2 = [];
+        tempY2 = [];
 	    fprintf('1000 data is done\n') % - for debug only 
-        % clear X;
-        % clear y;
-        % X = [];
-        % y = [];
 		% fflush(stdout); % For Octave only
 		count = 0; % - for debug only
         toc; % % - for debug only - Read elapsed time from stopwatch
 	end
-	
 end
+
+X = [X; tempX2]; % Append the rest rows to X
+y = [y; tempY2];
 save('trainData1.mat', 'X', 'y');
 fclose(fid);
 toc;
